@@ -13,12 +13,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class PostDto {
+    @NotBlank(message = "Title cannot be blank")
     @Size(min = 2, max = 50)
     private String title;
+
+    @NotBlank(message = "Content cannot be blank")
     @Size(min = 2, max = 2000)
     private String content;
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
-    private Long userId;
 }

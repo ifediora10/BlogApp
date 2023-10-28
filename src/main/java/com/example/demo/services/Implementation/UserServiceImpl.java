@@ -23,14 +23,17 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(signupDto.getEmail())){
             throw new DuplicateEmailException("Email already exist!");
         }
-        if (signupDto.getPassword().equals(signupDto.getConfirmPassword())){
+
+        if (!signupDto.getPassword().equals(signupDto.getConfirmPassword())){
             throw new PasswordMissMatchException("password miss Match try again");
         }
-        User newUser = mapper.map(signupDto,User.class);
+
+        User newUser = mapper.map(signupDto, User.class);
         newUser.setRole("USER");
+
         User savedUser = userRepository.save(newUser);
 
-        return mapper.map(savedUser,UserResponseDto.class);
+        return mapper.map(savedUser, UserResponseDto.class);
     }
 
     @Override
@@ -57,7 +60,7 @@ public class UserServiceImpl implements UserService {
                 throw new UnauthorizedUserException("You are not authorized to access this "+ userId);
             }
         }else {
-            throw new UserNotFound("User with this userId "+userId);
+            throw new UserNotFound("User not found with this userId "+userId);
         }
     }
 
@@ -74,7 +77,7 @@ public class UserServiceImpl implements UserService {
                     throw new UnauthorizedUserException("You are not authorized to access this "+ userId);
                 }
             }else {
-                throw new UserNotFound("User with this userId "+userId);
+                throw new UserNotFound("User not found with this userId "+userId);
             }
     }
 
@@ -91,7 +94,7 @@ public class UserServiceImpl implements UserService {
                 throw new UnauthorizedUserException("You are not authorized to access this "+ userId);
             }
         }else {
-            throw new UserNotFound("User with this userId "+userId);
+            throw new UserNotFound("User not found with this userId "+userId);
         }
     }
 
@@ -108,7 +111,7 @@ public class UserServiceImpl implements UserService {
                 throw new UnauthorizedUserException("You are not authorized to access this "+ userId);
             }
         }else {
-            throw new UserNotFound("User with this userId "+userId);
+            throw new UserNotFound("User not found with this userId "+userId);
         }
     }
 
@@ -125,7 +128,7 @@ public class UserServiceImpl implements UserService {
                 throw new UnauthorizedUserException("You are not authorized to access this "+ userId);
             }
         }else {
-            throw new UserNotFound("User with this userId "+userId);
+            throw new UserNotFound("User not found with this userId "+userId);
         }
     }
 

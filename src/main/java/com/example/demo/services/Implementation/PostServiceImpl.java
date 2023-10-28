@@ -1,6 +1,7 @@
 package com.example.demo.services.Implementation;
 
 import com.example.demo.dtos.request.PostDto;
+import com.example.demo.dtos.response.PostPageResponseDto;
 import com.example.demo.dtos.response.PostResponseDto;
 import com.example.demo.exceptions.POstNotFoundException;
 import com.example.demo.exceptions.UnauthorizedUserException;
@@ -13,6 +14,10 @@ import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.PostService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,13 +30,16 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ModelMapper mapper = new ModelMapper();
+
     @Override
-    public PostResponseDto createPost(PostDto postDto) {
-        Optional<User> optionalUser = userRepository.findById(postDto.getUserId());
+    public PostResponseDto createPost(PostDto postDto, Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
 
         if(optionalUser.isPresent()){
-            Post newPost = mapper.map(postDto,Post.class);
-            newPost.setUserEntity(optionalUser.get());
+            Post newPost = mapper.map(postDto, Post.class);
+
+            newPost.setUserEntity(userRepository.findById(userId).get());
+
             Post savePost = postRepository.save(newPost);
 
             return PostResponseDto.builder()
@@ -39,9 +47,10 @@ public class PostServiceImpl implements PostService {
                     .createdDate(savePost.getCreatedDate())
                     .content(savePost.getContent())
                     .title(savePost.getTitle())
-                    .userId(postDto.getUserId())
+                    .userId(savePost.getUserEntity().getUserId())
                     .build();
-        }else {
+
+        } else {
             List<ErrorModel> errorModelList = new ArrayList<>();
             ErrorModel errorModel = new ErrorModel();
             errorModel.setCode("USER_ID_NOT_EXIST");
@@ -52,14 +61,27 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostResponseDto> getAllPostByUser(Long userId) {
-        List<Post> postList = postRepository.findAllByUserEntityUserId(userId);
+    public PostPageResponseDto getAllPostByUser(Long userId, int pageNo, int pageSize, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo,pageSize, sort);
+        Page<Post> postPage = postRepository.findAllByUserEntityUserId(userId, pageable);
+        List<Post> postList = postPage.getContent();
         List<PostResponseDto> postDtoList = new ArrayList<>();
-        for (Post post : postList){
-           postDtoList.add(mapper.map(post,PostResponseDto.class));
+        for (Post post : postList) {
+            postDtoList.add(mapper.map(post, PostResponseDto.class));
         }
-        return postDtoList;
+        return PostPageResponseDto.builder()
+                .content(postDtoList)
+                .pageNo(postPage.getNumber())
+                .pageSize(postPage.getSize())
+                .totalElements(postPage.getTotalElements())
+                .totalPages(postPage.getTotalPages())
+                .lastPage(postPage.isLast())
+                .build();
     }
+
+
 
     @Override
     public PostResponseDto getPostByUser(Long postId, Long userId) {

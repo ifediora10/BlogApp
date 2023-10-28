@@ -1,10 +1,7 @@
 package com.example.demo.models.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -14,21 +11,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "Comment_Table")
 public class Comment {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long commentId;
+
     private String comment;
+
     @CreationTimestamp
     private LocalDateTime commentDate;
-    @ManyToOne (fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.PERSIST, CascadeType.REFRESH})
+
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post postEntity;
 
-    @ManyToOne (fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User userEntity;
+
+    @Transient
+    @ManyToOne (fetch = FetchType.LAZY)
+    private Admin AdminEntity;
 }
